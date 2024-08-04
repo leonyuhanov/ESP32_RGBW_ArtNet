@@ -1,4 +1,4 @@
-# CodeLess ESP32 RGBW ArtNet Neopixel Driver - THIS IS A VERY EARLY ALPHA RELEASE, THERE WILL BE BUGS, THERE WILL BE LOTS OF DEBUG MESAGES
+# CodeLess ESP32 RGBW ArtNet Neopixel Driver - THIS IS A VERY EARLY ALPHA RELEASE, THERE WILL BE BUGS, THERE WILL BE LOTS OF DEBUG MESSAGES
  # Prerequisites
 
 -  An ESP32 board, with pin 23 VOltage Level Shifted to drive your Neopixels
