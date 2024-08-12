@@ -78,6 +78,8 @@ IPAddress subnet = IPAddress(255,255,255,0);
 void setup() 
 {
   unsigned short int uCount=0;
+  uint8_t wifiFlag=0;
+  
   
   //Disable Bluetooth
   btStop();
@@ -94,6 +96,26 @@ void setup()
   
   if(systemMode==0)
   {
+  	//--------- Pixel Set up  -----------------------
+    //Count total number of pixels
+    for(uCount=0; uCount<numberOfDMXUniverses; uCount++)
+    {
+      totalPixels+=artNetFrames[uCount][2];
+    }
+    //If more than 0 pixels are set up initiate the LED System
+    if(totalPixels>0)
+    {
+      leds = new uint8_t[1*totalPixels*4];
+      ledStrip.initled(leds,pins,1,totalPixels,ORDER_RGBW);
+      //clear
+      for(uCount=0; uCount<totalPixels; uCount++)
+      {
+        ledStrip.setPixel(uCount,0,0,0,0);
+      }
+      ledStrip.showPixels();
+    }
+    //------------------------------------------------
+    
   	//Eable WIFI
   	WiFi.mode(WIFI_STA);
   	//Set DHCP or Static Mode based on networkMode value
@@ -112,6 +134,25 @@ void setup()
   	{
   		delay(100);
   		Serial.print(".");
+      //Flash Pixels RED untill wifi is connected
+      if(wifiFlag==0)
+      {
+        for(uCount=0; uCount<totalPixels; uCount++)
+        {
+          ledStrip.setPixel(uCount,10,0,0,0);
+        }
+        ledStrip.showPixels();
+        wifiFlag=1;
+      }
+      else
+      {
+        for(uCount=0; uCount<totalPixels; uCount++)
+        {
+          ledStrip.setPixel(uCount,0,0,0,0);
+        }
+        ledStrip.showPixels();
+        wifiFlag=0;
+      }
   	}
   	Serial.print("\r\nONLINE\t");
   	Serial.print(WiFi.localIP());
@@ -120,27 +161,7 @@ void setup()
   	udp.listen(artNetPort);
   	udp.onPacket(pollDMX);
     
-    //Pixel Set up
-    //Count total number of pixels
-    for(uCount=0; uCount<numberOfDMXUniverses; uCount++)
-    {
-      totalPixels+=artNetFrames[uCount][2];
-    }
-    //If more than 0 pixels are set up initiate the LED System
-    if(totalPixels>0)
-    {
-      leds = new uint8_t[1*totalPixels*4];
-      ledStrip.initled(leds,pins,1,totalPixels,ORDER_RGBW);
-      //clear
-      for(uCount=0; uCount<totalPixels; uCount++)
-      {
-        ledStrip.setPixel(uCount,0,0,0,0);
-      }
-      ledStrip.showPixels();
-
-    }
     
-    //------------------------------------------------
   }
   else if(systemMode==1)
   {
