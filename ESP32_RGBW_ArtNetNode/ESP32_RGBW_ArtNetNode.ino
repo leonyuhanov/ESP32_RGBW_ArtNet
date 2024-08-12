@@ -130,7 +130,7 @@ void setup()
     if(totalPixels>0)
     {
       leds = new uint8_t[1*totalPixels*4];
-      ledStrip.initled(leds,pins,1,totalPixels,ORDER_GRBW);
+      ledStrip.initled(leds,pins,1,totalPixels,ORDER_RGBW);
       //clear
       for(uCount=0; uCount<totalPixels; uCount++)
       {
