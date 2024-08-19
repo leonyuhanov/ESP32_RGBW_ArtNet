@@ -130,8 +130,14 @@ Sundry Parts:
 
 # Upload the firmware to the ESP32
 
-For OSX or other platforms you can use the web based formware uplaod tool https://esp.huhn.me/ with the following address map:
-Use the firmware files located in the "Firmware" folder and make sure each files address is as follows:
+For OSX or other platforms you can use the web based formware uplaod tool https://esp.huhn.me/ 
+
+1. Connect the ESP32 module to your MAC with a MicroUSB cable
+2. Goto https://esp.huhn.me/
+3. Once the page loads, click connect
+4. Allow the page to access your serial ports
+5. Select the Apropriate port for your ESP32, it will have something like CH32 in its name
+6. Once connected, Use the firmware files located in the "Firmware" folder and make sure each files address is as follows:
 ![Web Upload Tool](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Firmware/ONLINETool.png)
 
 - boot_app0_0xe000.bin
