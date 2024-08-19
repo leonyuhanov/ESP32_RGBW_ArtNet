@@ -19,6 +19,7 @@ Parts List:
 Sundry Parts:
 -  Wide Heat Shrink Tube
 -  Narrow Heat Shrink Tube
+-  Prototype bread board for pin lineup
 
 # Breakdown of Assembly
 
@@ -26,6 +27,7 @@ Sundry Parts:
 - Assemble the SBEC Power Module
 - Assemble the ESP32 Module
 - Assemble the PCB: Add the Push Button and resistor. Add the Level shifter. Add the ESP32 Module, Add the Capacitor, finish with power cable and data cable
+- Upload the firmware to the ESP32
 
 # Assemble the USBC Power module
 
@@ -89,3 +91,56 @@ Sundry Parts:
 15. Solder the RED & YELLOW tie from the JST cable to the PAIR of RED OUTPUT cables of the SBEC
 16. Solder the GREEN & BLUE tie from the JST cable to the PAIR of BLACK OUTPUT cables of the SBEC
 17. Seal each solder joint with electrical tape and heatshrink over the top
+18. Connect the USBC PD Module to the INPUT of the SBEC MODULE, connect the USBC module to the Powerbank and verify 5V output on the SBEC output cable with a multimeter
+
+# Assemble the ESP32 Module
+
+-  1 x Lolin D32 - ESP32 Module
+-  2 x 16pin header pins
+-  Prototype Bredboard to align pins
+
+1. Insert 1 x 16pin Header into the breadboard and space out the second 16pin header so that you can fit the LOLIN D32 module on the 2 rows
+2. Solder ALL the pins on the LOLIN D32 module
+
+# Assemble the PCB
+-  1 x Green PCB Module
+-  1 x Level Shifter IC - 74LS245N
+-  1 x Push Button
+-  1 x 100K Pushbutton Resistor
+-  1 x Green Power Filter Capacitor
+-  1 x Assembled ESP32 Module from previous step
+-  1 x MALE 4PIN JST Cable
+-  1 x 3PIN JST Cable Pair
+
+1. Insert the PUSH BUtton into the PCB and solder it on
+2. Insert the resistor into the resistor slot on the pcb and solder it on, cut off excess legs from the underside
+3. Insert the Level Shift IC into the PCB module, making sure to line up its KEY slot to the KEY slot of the PCB
+4. Solder ALL pins
+5. Insert the ESP32 Module into the PCB and level it out, solder all pins to the PCB
+6. Insert the filter capacitor on the UNDERSIDE of the PCB, making sure to line up the "+" pin on the Capacitor with the "+" hole on the PCB, solder it on and cut off excess leg length
+7. Cut the 4pin MALE JST cable to a length of 5CM from the end of the BLACK PLUG
+9. Split the Cable into 2 pairs.
+   - RED & YELLOW : + Voltage
+     - Strip 10mm of both RED & YELLOW Jackets and tie them together
+   - GREEN & BLUE : - Voltage
+     - Strip 10mm of both GREEN & BLUE Jackets and tie them together
+10. Solder the RED & YELLOW tie from the JST cable to the +5v Power Input hole on the PCB
+11. Solder the GREEN & BLUE tie from the JST cable to the GND Power input hole on the PCB
+12. TO DO OUTPUT 3 PIN JST
+
+# Upload the firmware to the ESP32
+
+For OSX or other platforms you can use the web based formware uplaod tool https://esp.huhn.me/ with the following address map:
+Use the firmware files located in the "Firmware" folder and make sure each files address is as follows:
+![Web Upload Tool](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Firmware/ONLINETool.png)
+
+- boot_app0_0xe000.bin
+  - Address "e000" 
+- BootLoader_0x1000.bin
+  - Address "1000"
+- Partitions_0x8000.bin
+  - Address "8000"
+- Firmware_0x10000.bin
+  - Address "10000"
+- SPIFFS_0x00290000.bin
+  - Address "00290000"
