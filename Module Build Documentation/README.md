@@ -25,9 +25,10 @@ Parts List:
 -  1 x Current Bus Cable
 
 Sundry Parts:
--  Wide Heat Shrink Tube
--  Narrow Heat Shrink Tube
+-  1 x SHORT Heat Shrink Tube
+-  1 x LONG Heat Shrink Tube
 -  Prototype bread board for pin lineup
+-  Hot Glue Gun with Clear Glue
 
 # Breakdown of Assembly
 
@@ -60,9 +61,9 @@ Sundry Parts:
 ![USBC PD Module](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/usbcpd-4.jpg)
 6. Solder each connection
 ![USBC PD Module](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/usbcpd-5.jpg)
-7. Slip 1 piece of WIDE Heat Shrink over the end where the cables were soldered and heat to shrink
+7. Slip the LONG Heat Shrink tube over the end where the cables were soldered and heat to shrink
 ![USBC PD Module](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/usbcpd-6.jpg)
-8. Slip the 2nd piece of WIDE Heat Shrink over the end closest to the USBC Port and heat to shrink
+8. Slip the SHORT Heat Shrink Tube over the end closest to the USBC Port and heat to shrink
 ![USBC PD Module](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/usbcpd-7.jpg)
 9. Connect the Module to the PowerBanks 100W USBC Port using a 100W capable USBC Cable
 10. Use a multimeter to verify you are receiving 20V on the end of the 4PIN Female JST Cable
