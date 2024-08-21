@@ -1,7 +1,12 @@
 # Build Instructions
+Parts 
 ![Parts](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/Parts1of2.jpg)
+SBEC Module
 ![SBEC](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/sbec.jpg)
+JST Cables
 ![JST Cables](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/jst.jpg)
+HIGH Current BUS Cable
+
 ![Current Bus Cable](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/currentbus.jpg)
 
 
