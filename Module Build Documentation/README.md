@@ -23,12 +23,16 @@ Parts List:
 -  2 x Pairs of (1 Male & 1 Female) 4PIN JST Clip Cables
 -  1 x Pair of (1 Male & 1 Female) 3PIN JST Clip Cables
 -  1 x Current Bus Cable
-
-Sundry Parts:
 -  1 x SHORT Heat Shrink Tube
 -  1 x LONG Heat Shrink Tube
+
+Sundry Parts:
 -  Prototype bread board for pin lineup
 -  Hot Glue Gun with Clear Glue
+-  Leaded Solder
+-  Multimeter
+-  Soldering Iron set to 300-350c
+-  Electrical Tape
 
 # Breakdown of Assembly
 
@@ -42,7 +46,8 @@ Sundry Parts:
 
 - 1 x Purple USBC Power Module
 - 1 x FEMALE 4 Pin JST Cable
-- 2 x Small pieces of WIDE Heat Shrink
+- 1 x SHORT Heat Shrink Tube
+- 1 x LONG Heat Shrink Tube
  
 1. Remove the protective tape from the x3 dip switch on the USBC module and set the DIP switch to 011. So that SW1=DOWN SW2=UP SW3=UP
 
