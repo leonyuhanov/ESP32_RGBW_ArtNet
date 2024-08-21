@@ -2,6 +2,8 @@
 ![Parts](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/Parts1of2.jpg)
 ![SBEC](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/sbec.jpg)
 ![JST Cables](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/jst.jpg)
+![Current Bus Cable](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/currentbus.jpg)
+
 
 Parts List:
 -  1 x Lolin D32 - ESP32 Module
@@ -15,6 +17,7 @@ Parts List:
 -  1 x 20A SBEC Power Module
 -  2 x Pairs of (1 Male & 1 Female) 4PIN JST Clip Cables
 -  1 x Pair of (1 Male & 1 Female) 3PIN JST Clip Cables
+-  1 x Current Bus Cable
 
 Sundry Parts:
 -  Wide Heat Shrink Tube
@@ -126,7 +129,12 @@ Sundry Parts:
      - Strip 10mm of both GREEN & BLUE Jackets and tie them together
 10. Solder the RED & YELLOW tie from the JST cable to the +5v Power Input hole on the PCB
 11. Solder the GREEN & BLUE tie from the JST cable to the GND Power input hole on the PCB
-12. TO DO OUTPUT 3 PIN JST
+12. ------ TO DO OUTPUT 3 PIN JST ------
+13. Split the Current Bus Cable into 2 seperate cables
+    - RED: + Voltage (+5V)
+    - BLACK STRIPE: - Voltage (GND)
+15. Flip the PCB over and Solder one end of the the RED BUS cable to the "+5V" POWER INPUT and the other to the "+5V" Power OUTPUT to the LED PANEL
+16. DO the same for the BLACK STRIPE BUS cable, one end to the "GND" POWER INPUT and the other end to the "GND" Power Output to the LED PANEL 
 
 # Upload the firmware to the ESP32
 
