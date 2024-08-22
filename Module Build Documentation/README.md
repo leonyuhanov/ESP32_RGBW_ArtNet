@@ -83,9 +83,10 @@ Sundry Parts:
 2. SPlit the sables into 2 pairs
    - 2 x RED Cables are the +5V
    - 2 x BLACK Cables are the GND
+![SBEC Output](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/sbecoutput.jpg)
 4. Cut the OUTPUT cable so that you have 10cm from the module
 5. Strip 10mm of the jacketing from both pairs of OUTPUT CABLES and join the SAME coloured pairs together
-6. Cut the INPUT Cables so that you have 10cm from the modile
+6. Cut the INPUT Cables so that you have 10cm from the module
 7. Strip 10mm of the jacketing from both OUTPUT CABLES
 8. Cut the 4pin MALE JST cable to a length of 5CM from the end of the BLACK PLUG
 9. Split the Cable into 2 pairs.
@@ -93,8 +94,8 @@ Sundry Parts:
      - Strip 10mm of both RED & YELLOW Jackets and tie them together
    - GREEN & BLUE : - Voltage
      - Strip 10mm of both GREEN & BLUE Jackets and tie them together
-10. Solder the RED & YELLOW tie from the JST cable to the RED INPUT cable of the SBEC
-11. Solder the GREEN & BLUE tie from the JST cable to the BLACK INPUT cable of the SBEC
+10. Solder the RED & YELLOW tie from the MALE JST cable to the RED INPUT cable of the SBEC
+11. Solder the GREEN & BLUE tie from the MALE JST cable to the BLACK INPUT cable of the SBEC
 12. Seal each solder joint with electrical tape and heatshrink over the top
 13. Cut the 4pin FEMALE JST cable to a length of 5CM from the end of the BLACK PLUG
 14. Split the Cable into 2 pairs.
@@ -102,9 +103,10 @@ Sundry Parts:
      - Strip 10mm of both RED & YELLOW Jackets and tie them together
    - GREEN & BLUE : - Voltage
      - Strip 10mm of both GREEN & BLUE Jackets and tie them together
-15. Solder the RED & YELLOW tie from the JST cable to the PAIR of RED OUTPUT cables of the SBEC
-16. Solder the GREEN & BLUE tie from the JST cable to the PAIR of BLACK OUTPUT cables of the SBEC
+15. Solder the RED & YELLOW tie from the FEMALE JST cable to the PAIR of RED OUTPUT cables of the SBEC
+16. Solder the GREEN & BLUE tie from the FEMALE JST cable to the PAIR of BLACK OUTPUT cables of the SBEC
 17. Seal each solder joint with electrical tape and heatshrink over the top
+![SBEC Complete](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/sbeccomplete.jpg)
 18. Connect the USBC PD Module to the INPUT of the SBEC MODULE, connect the USBC module to the Powerbank and verify 5V output on the SBEC output cable with a multimeter
 
 # Assemble the ESP32 Module
@@ -114,7 +116,9 @@ Sundry Parts:
 -  Prototype Bredboard to align pins
 
 1. Insert 1 x 16pin Header into the breadboard and space out the second 16pin header so that you can fit the LOLIN D32 module on the 2 rows
+![ESP32 HEader Pins](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/esp32p1.jpg) 
 2. Solder ALL the pins on the LOLIN D32 module
+![ESP32 Assembled](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/esp32p2.jpg)
 
 # Assemble the PCB
 -  1 x Green PCB Module
@@ -127,11 +131,16 @@ Sundry Parts:
 -  1 x 3PIN JST Cable Pair
 
 1. Insert the PUSH BUtton into the PCB and solder it on
+![Push Button](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/button.jpg)
 2. Insert the resistor into the resistor slot on the pcb and solder it on, cut off excess legs from the underside
-3. Insert the Level Shift IC into the PCB module, making sure to line up its KEY slot to the KEY slot of the PCB
+![Resistor](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/resistor.jpg)
+3. Insert the Level Shift IC into the PCB module, making sure to line up its KEY slot to the KEY slot of the PCB. The PCB has a SQUARE marking on the bottom LEFT Silkscreen markings of the IC mount. This indicates pin 1
+![Level Shifter](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/shifter.jpg)
 4. Solder ALL pins
 5. Insert the ESP32 Module into the PCB and level it out, solder all pins to the PCB
+![ESP32 on PCB](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/modulecomplete.jpg)
 6. Insert the filter capacitor on the UNDERSIDE of the PCB, making sure to line up the "+" pin on the Capacitor with the "+" hole on the PCB, solder it on and cut off excess leg length
+![Filter Capacitor](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/cap.jpg)
 7. Cut the 4pin MALE JST cable to a length of 5CM from the end of the BLACK PLUG
 9. Split the Cable into 2 pairs.
    - RED & YELLOW : + Voltage
