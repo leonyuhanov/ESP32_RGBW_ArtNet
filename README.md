@@ -41,3 +41,8 @@ Key: wowaccesspoint
   - ESP32 Async TCP Lib https://github.com/me-no-dev/AsyncTCP
 
 Upload and compile the code, then use the ESP32 Upload tool to uplaod the UI page to SPIFS
+
+# Updated ArtNet Universe & Subnet translation - FEB 2025
+
+If you want to use the SUBNET address byte properly please use the code and firmware [Located Here](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/tree/main/ESP32_RGBW_ArtNetNode_UNISBUNETFix)
+This translates the SUBNET byte proeprly. Previous versions will not use the subnet byte proerly and only use the UNIVERSE byte liiting you to 16 DMX universes
