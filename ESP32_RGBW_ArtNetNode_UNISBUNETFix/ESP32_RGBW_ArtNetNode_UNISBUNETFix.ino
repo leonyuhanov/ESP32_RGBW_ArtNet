@@ -74,7 +74,6 @@ IPAddress gateway = IPAddress(10,10,10,1);
 IPAddress subnet = IPAddress(255,255,255,0);
 //--------------------  WEB UI Stuff
 
-
 void setup() 
 {
   unsigned short int uCount=0;
@@ -85,7 +84,7 @@ void setup()
   btStop();
   //Init Serial Out
   Serial.begin(115200);
-  Serial.printf("\r\n\r\n\r\nSystem Booting....\r\n");
+  Serial.printf("\r\n\r\n\r\nSystem Booting....\r\nRGBW NEOPIXEL ARTNET\r\n");
   //Set up input
   pinMode(bootPin, INPUT);
   systemMode = digitalRead(bootPin);
@@ -809,7 +808,8 @@ void loop()
     //ArtNet Mode
     if(totalPixels>0)
     {
-      ledStrip.showPixels();
+      //ledStrip.showPixels();
+      //delay(2);
       yield();
     }
   }
@@ -837,6 +837,7 @@ void pollDMX(AsyncUDPPacket &packet)
             //Serial.printf("\r\nGot Data for U[%d]S[%d]",packetBuffer[14],packetBuffer[15] );
             artNetData.parseArtNetPacket(packetBuffer);
             writeToPixels(uCount);
+            ledStrip.showPixels();
             return;
           }
         }
@@ -858,5 +859,6 @@ void writeToPixels(uint8_t universeId)
     ledStrip.setPixel(pStart+pIndex, artNetData.data[dmxIndex], artNetData.data[dmxIndex+1], artNetData.data[dmxIndex+2], artNetData.data[dmxIndex+3]);
     dmxIndex+=4;
   }
+
   //Serial.printf("\r\n\tRendeing [%d] pixels", artNetFrames[universeId][2] );
 }
