@@ -1,4 +1,4 @@
-# CodeLess ESP32 RGBW/RGB ArtNet Neopixel Driver - THIS IS A VERY EARLY ALPHA RELEASE, THERE WILL BE BUGS, THERE WILL BE LOTS OF DEBUG MESSAGES
+# CodeLess ESP32 RGBW/RGB ArtNet Neopixel/APA102/SK9822 Driver
  # Prerequisites
 
 -  An ESP32 board, with pin 23 VOltage Level Shifted to drive your Neopixels
