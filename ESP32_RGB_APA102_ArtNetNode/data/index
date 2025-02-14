@@ -1,0 +1,553 @@
+<html><title>RGB APA102 ArtNet Driver</title>
+<style type="text/css">
+html, body{
+	background: black;
+	color: white;
+	font-family: Arial;
+	overflow-x: hidden;
+}
+h1{
+	animation-name: shrink;
+	animation-duration: 2s;
+	position: relative;
+}
+@keyframes shrink {
+  0%, 25% {top: 30%;}
+  100% {top: 0;}
+}
+h1, table{
+	text-align: center;
+}
+button, table{
+	animation-name: fade;
+	animation-duration: 1.5s;
+	animation-delay: 1.25s;
+	opacity: 0;
+	animation-fill-mode: forwards;
+}
+@keyframes fade {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+table{
+	width: 100%;
+	border-spacing: 4px 10px;
+}
+td{
+	padding: 5px;
+}
+tr{
+	background: #111;
+	transition: all .5s;
+}
+tr:nth-child(even){
+	background: #222;
+}
+tr:hover{
+	background: #444;
+}
+td:nth-child(4){
+	color: red;
+	transition: all .25s;
+}
+td:hover:nth-child(4){
+	background: red;
+	color: white;
+	cursor: pointer;
+}
+input, select, button{
+	background: #555;
+	border: 0;
+	color: white;
+}
+button{
+	width: auto;
+}
+select{
+	width: auto;
+}
+img{
+	position: relative;
+	top: 5px;
+}
+p{
+	text-align: center;
+}
+i{
+	opacity: 0;
+}
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body onload="init()">
+<i>.</i>
+<h1><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACoAAAAoCAYAAACIC2hQAAABmElEQVR4Ae2WIWzzMBCFA39ojsJLzFE4Mvm5OQpH5ijjJBwFDhqMy2i4HJlOmnR7lR44WW4zRW2dTgEfuXvJfY17TTsReQkO0UP03nyfTiMICrc7UYpJBfsqov3eRMea6B6PfqiI5j2K9iAXotNDRTHAgggC8NWFeOsGEojhdYGMzDn2PfN9McuAgdfM+sNtXQx3GQIykAqhdi/2akyclcpZW0XPYAEGN78Q7yCagecsD+IWUX0cptansAMTSBzurmQTxRYwArvylbPHK/RLOgsy8KpmQAJzc1EK9ZQU4lhPqjbtQXQAogisiyIeoofoOoeoURuegWV9VqK+taiWXYAt6tMWyePN9O/jfwAJmKI+gghsc1EKCgmqbkBWPddElDI9EEUunqYo5paivpBZVM8WvfOeRMein3chSplIkbmyTA6c2R9ai9pbElyq9j/43fun/0XGXmgiisEGRCAgrOQy8S1EZyAKeyW3FLn+2aKxEBi25x4rmgoBcyU3FTnX8ujTjZxTuQzsM0X1U12AWck5Sro/+TfvBz33qxiwXPx/AAAAAElFTkSuQmCC" alt="">RGB ArtNet Driver</h1>
+
+<!-- IP Config Table -->
+<table>
+<tbody>
+<tr>
+	<td colspan=2 >Device MAC</td>
+	<td colspan=2 ><div id="devicemac"></div></td>
+</tr>
+<tr>
+	<td colspan=2 >SSID</td>
+	<td colspan=2 ><input type="text" id="ssid"></td>
+</tr>
+<tr>
+	<td colspan=2 >Key</td>
+	<td colspan=2 ><input type="text" id="key"></td>
+</tr>
+<tr>
+	<td colspan=2 >IP Assigmnet</td>
+	<td colspan=2 >
+		<select name="ipdropdown" id="ipdropdown" onchange="ipoptionchange()">
+		<option value="dhcp" selected>DHCP</option>
+		<option value="static">Static IP</option>
+		</select>
+	</td>
+</tr>
+<tr id="staticiprow1" hidden>
+	<td>IP Address</td>
+	<td>Subnet Mask</td>
+	<td>Default Gateway</td>
+	<td>Host Name</td>
+</tr>
+<tr id="staticiprow2" hidden>
+	<td><input type="text" id="ipaddress"></td>
+	<td><input type="text" id="subnetmask" value="255.255.255.0"></td>
+	<td><input type="text" id="gateway"></td>
+	<td><input type="text" id="hostname"></td>
+</tr>
+</tbody></table>
+<!-- ARTNET Config Table -->
+<table id="artnettable">
+<tbody>
+<tr>
+	<td>Universe</td>
+	<td>Subnet</td>
+	<td>Total Pixels</td>
+	<td></td>
+</tr>
+</table>
+
+<p>
+<button onclick="addUniverse()">Add Universe</button>
+<button onclick="saveConfigReboot()">Save & Reboot</button>
+</p>
+
+<script language="JavaScript">
+//ArtNet Vars
+var numberOfUniverses = 1;
+var maxPixelsPerUniverse = 170;
+var universeList = Array();
+var dhcpOn = 1;
+
+
+//Web Socket Vars
+var wsObject;
+var returnedDataArray;
+var configSignals=0;
+
+setTimeout(function()
+{
+	window.scrollTo(0, 0);
+}, 10)
+
+function sleep(ms)
+{
+	return new Promise( resolve => setTimeout(resolve, ms));
+}
+
+
+async function init()
+{
+	initWebSockets();
+	await sleep(3000);
+	//Assemble default universe settings
+	setUpArtNetTable();
+}
+
+function setUpArtNetTable()
+{
+	var tableObject = document.getElementById('artnettable');
+	var uCounter=0;
+	var trObject, tdObject, textInputObject;
+	
+	for(uCounter=0; uCounter<universeList.length; uCounter++)
+	{
+		//create Row
+		trObject = tableObject.insertRow(uCounter+1);
+		trObject.setAttribute('id', 'artnetid'+uCounter);
+		//Create Universe Column
+		tdObject = document.createElement('td');
+		tdObject = trObject.insertCell(0);
+		textInputObject = document.createElement('input');
+		textInputObject.setAttribute('id', 'universe'+uCounter);
+		textInputObject.setAttribute('value', universeList[uCounter][0]);
+		textInputObject.setAttribute('onChange', "artnetChange("+uCounter+", 'universe"+uCounter+"', 0)");
+		tdObject.appendChild(textInputObject);
+		//Create Subnet Column
+		tdObject = document.createElement('td');
+		tdObject = trObject.insertCell(1);
+		textInputObject = document.createElement('input');
+		textInputObject.setAttribute('id', 'subnet'+uCounter);
+		textInputObject.setAttribute('value', universeList[uCounter][1]);
+		textInputObject.setAttribute('onChange', "artnetChange("+uCounter+", 'subnet"+uCounter+"', 1)");
+		tdObject.appendChild(textInputObject);
+		//Create Pixel Count Column
+		tdObject = document.createElement('td');
+		tdObject = trObject.insertCell(2);
+		textInputObject = document.createElement('input');
+		textInputObject.setAttribute('id', 'pixelcount'+uCounter);
+		textInputObject.setAttribute('value', universeList[uCounter][2]);
+		textInputObject.setAttribute('onChange', "artnetChange("+uCounter+", 'pixelcount"+uCounter+"', 2)");
+		tdObject.appendChild(textInputObject);
+		//create delete button
+		tdObject = document.createElement('td');
+		tdObject = trObject.insertCell(3);
+		textInputObject = document.createElement('div');
+		textInputObject.setAttribute('id', 'del'+uCounter);
+		textInputObject.setAttribute('onClick', 'removeUniverse('+uCounter+')');
+		textInputObject.innerHTML = '&#10060;';
+		tdObject.appendChild(textInputObject);
+	}
+}
+
+function setUpDefaultArtNetConfig()
+{
+	var uCounter=0;
+	for(uCounter=0; uCounter<numberOfUniverses; uCounter++)
+	{
+		universeList.push([0,0,maxPixelsPerUniverse]);
+	}
+}
+
+function ipoptionchange()
+{
+	var selectedOption = document.getElementById("ipdropdown").value;
+	if(selectedOption=="dhcp")
+	{
+		document.getElementById("staticiprow1").hidden=true;
+		document.getElementById("staticiprow2").hidden=true;
+		dhcpOn=1;
+	}
+	else if(selectedOption=="static")
+	{
+		document.getElementById("staticiprow1").hidden=false;
+		document.getElementById("staticiprow2").hidden=false;
+		dhcpOn=0;
+	}
+}
+
+function artnetChange(universeIndex, fieldName, fieldIndex)
+{
+	universeList[universeIndex][fieldIndex] = document.getElementById(fieldName).value;
+}
+
+function clearUI()
+{
+	var tableObject = document.getElementById('artnettable');
+	var uCounter=0;
+	
+	for(uCounter=universeList.length; uCounter>0; uCounter--)
+	{
+		tableObject.deleteRow(uCounter);
+	}
+}
+
+function initWebSockets()
+{
+	wsObject = new WebSocket("ws://10.10.10.1/ws");
+
+	wsObject.onopen = function()
+	{
+		wsObject.send("getNetwork");
+	};
+
+	wsObject.onclose = function()
+	{
+	};
+
+	wsObject.onmessage = function(event)
+	{
+		if(configSignals==0)
+		{
+			//Grab network details from the ESP32
+			console.log("got network data maybe....");
+			console.log(event.data);
+			setUpNetwork(event.data);
+			configSignals++;
+			wsObject.send("getArtnet");
+		}
+		else if(configSignals==1)
+		{
+			//Grab artnet config
+			console.log("got artnet data maybe....");
+			console.log(event.data);
+			setUpArtNet(event.data);
+			configSignals++;
+			wsObject.send("getMacaddress");
+		}
+		else if(configSignals==2)
+		{
+			//Grab mac Address
+			console.log("got mac address data maybe....");
+			console.log(event.data);
+			getMacAddress(event.data);
+			configSignals++;
+			wsObject.send("getWifi");
+		}
+		else if(configSignals==3)
+		{
+			//Grab mac Address
+			console.log("got WIFI details maybe....");
+			console.log(event.data);
+			getWIFIDetails(event.data);
+			configSignals++;
+		}
+	};
+}
+
+function removeUniverse(universeIndex)
+{
+	//clear UI
+	clearUI();
+	//remove from universe list
+	universeList.splice(universeIndex,1);
+	numberOfUniverses = universeList.length;
+	//recrete UI
+	setUpArtNetTable();
+}
+function addUniverse()
+{
+	//clear UI
+	clearUI();
+	//add balnk enry
+	universeList.push([0,0,maxPixelsPerUniverse]);
+	numberOfUniverses = universeList.length;
+	//recrete UI
+	setUpArtNetTable();
+
+}
+async function getWIFIDetails(data)
+{
+	var returnData = new Uint8Array(await data.arrayBuffer());
+	var seperator = findNeedle(0, returnData, returnData.length, 0);
+	var ssid = "";
+	var key = "";
+	var iCounter=0;
+	
+	//parse the SSID
+	for(iCounter=0; iCounter<seperator; iCounter++)
+	{
+		ssid += String.fromCharCode( returnData[iCounter] );
+	}
+	//Parse the Key
+	for(iCounter=seperator+1; iCounter<returnData.length; iCounter++)
+	{
+		key += String.fromCharCode( returnData[iCounter] );
+	}
+	document.getElementById("ssid").value = ssid;
+	document.getElementById("key").value = key;	
+}
+function findNeedle(needle, haystack, length, count)
+{
+	var hayCounter=0;
+	var nCount=0;
+	for(hayCounter=0; hayCounter<length; hayCounter++)
+	{
+		if(haystack[hayCounter]==needle && nCount==count)
+		{
+			return hayCounter;
+		}
+		else if(haystack[hayCounter]==needle && nCount!=count)
+		{
+			nCount++;
+		}
+	}
+	return -1;
+}
+async function getMacAddress(data)
+{
+	var returnData = new Uint8Array(await data.arrayBuffer());
+	console.log(returnData);
+	document.getElementById("devicemac").innerHTML=returnData[0].toString(16)+":"+returnData[1].toString(16)+":"+returnData[2].toString(16)+":"+returnData[3].toString(16)+":"+returnData[4].toString(16)+":"+returnData[5].toString(16);
+}
+async function setUpNetwork(data)
+{
+	var returnData = new Uint8Array(await data.arrayBuffer());
+	var indexCounter=0;
+	var endOfHostNameIndex = 13;
+	var hostName = "";
+	var debugText = "";
+	
+	for(indexCounter=0; indexCounter<returnData.length; indexCounter++)
+	{
+		debugText+=indexCounter+"->["+returnData[indexCounter]+"]["+String.fromCharCode(returnData[indexCounter])+"]\r\n";
+	}
+	console.log(debugText);
+	//Set up hostname
+	for(indexCounter=1; indexCounter<returnData.length-endOfHostNameIndex; indexCounter++)
+	{
+		hostName += String.fromCharCode(returnData[indexCounter]);
+	}
+	document.getElementById("hostname").value = hostName;
+	//Set up DHCP options
+	if(returnData[0]==0)
+	{
+		dhcpOn=1;
+		document.getElementById("staticiprow1").hidden=true;
+		document.getElementById("staticiprow2").hidden=true;
+		document.getElementById("ipdropdown").options[0].selected=true;
+	}
+	else
+	{
+		dhcpOn=0;
+		document.getElementById("staticiprow1").hidden=false;
+		document.getElementById("staticiprow2").hidden=false;
+		document.getElementById("ipdropdown").options[1].selected=true;
+	}
+	//set up IP
+	document.getElementById("ipaddress").value=returnData[returnData.length-endOfHostNameIndex]+"."+returnData[returnData.length-endOfHostNameIndex+1]+"."+returnData[returnData.length-endOfHostNameIndex+2]+"."+returnData[returnData.length-endOfHostNameIndex+3];
+	//set up subnet MASK
+	document.getElementById("subnetmask").value=returnData[returnData.length-endOfHostNameIndex+4]+"."+returnData[returnData.length-endOfHostNameIndex+5]+"."+returnData[returnData.length-endOfHostNameIndex+6]+"."+returnData[returnData.length-endOfHostNameIndex+7];
+	//set up subnet MASK
+	document.getElementById("gateway").value=returnData[returnData.length-endOfHostNameIndex+8]+"."+returnData[returnData.length-endOfHostNameIndex+9]+"."+returnData[returnData.length-endOfHostNameIndex+10]+"."+returnData[returnData.length-endOfHostNameIndex+11];
+	
+}
+async function setUpArtNet(data)
+{
+	var returnData = new Uint8Array(await data.arrayBuffer());
+	var uCounter=0, uIndex=0;
+	if(returnData.length==1)
+	{
+		//fresh set up no artnet config found
+		console.log("NoArtnet config. Defaults set up.");
+		setUpDefaultArtNetConfig();
+	}
+	else
+	{
+		numberOfUniverses = returnData.length/3;
+		for(uCounter=0; uCounter<numberOfUniverses; uCounter++)
+		{
+			universeList.push([returnData[uIndex],returnData[uIndex+1],returnData[uIndex+2]]);
+			uIndex+=3;
+		}
+	}
+}
+
+//-----------	Save functions
+function sendArtNetConfig()
+{
+	var artNetConfig = new Uint8Array(1+(universeList.length*3));
+	var aIndex=0, lIndex=0;
+	
+	artNetConfig[aIndex] = ("A").charCodeAt();
+	aIndex++;
+	for(lIndex=0; lIndex<universeList.length; lIndex++)
+	{
+		artNetConfig[aIndex] = universeList[lIndex][0];
+		aIndex++;
+		artNetConfig[aIndex] = universeList[lIndex][1];
+		aIndex++;
+		artNetConfig[aIndex] = universeList[lIndex][2];
+		aIndex++;
+	}
+	wsObject.send(artNetConfig);
+}
+function sendWifiConfig()
+{
+	var iCounter=0;
+	var ssid = document.getElementById("ssid").value;
+	var key = document.getElementById("key").value;
+	var wifiConfig = new Uint8Array(1+ssid.length+1+key.length);
+	var aIndex=0;
+	
+	wifiConfig[aIndex] = ("W").charCodeAt();
+	aIndex++;
+	for(iCounter=0; iCounter<ssid.length; iCounter++)
+	{
+		wifiConfig[aIndex] = ssid[iCounter].charCodeAt();
+		aIndex++;
+	}
+	wifiConfig[aIndex] = 0;
+	aIndex++;
+	for(iCounter=0; iCounter<key.length; iCounter++)
+	{
+		wifiConfig[aIndex] = key[iCounter].charCodeAt();
+		aIndex++;
+	}
+	wsObject.send(wifiConfig);
+}
+function sendNetworkConfig()
+{
+	var networkConfig;
+	var deviceMac = document.getElementById("devicemac").innerHTML;
+	var hostname = document.getElementById("hostname").value;
+	var sIndex=0, dIndex=0;
+	var myIp, myMask, myGateway;
+	
+	if(dhcpOn==1)
+	{
+		//DHCP ON
+		networkConfig = new Uint8Array(1+1+hostname.length);
+		networkConfig[0] = ("N").charCodeAt();
+		networkConfig[1] = 0;
+		dIndex=2;
+		for(sIndex=0; sIndex<hostname.length; sIndex++)
+		{
+			networkConfig[dIndex] = hostname[sIndex].charCodeAt();
+			dIndex++;
+		}
+	}
+	else if(dhcpOn==0)
+	{
+		//DHCP OFF Static IP Config
+		myIp = document.getElementById("ipaddress").value.split(".");
+		myMask = document.getElementById("subnetmask").value.split(".");
+		myGateway = document.getElementById("gateway").value.split(".");
+		networkConfig = new Uint8Array(1+1+hostname.length+4+4+4);
+		networkConfig[0] = ("N").charCodeAt();
+		//DHCP Mode
+		networkConfig[1] = 1;
+		//Hostname
+		dIndex=2;
+		for(sIndex=0; sIndex<hostname.length; sIndex++)
+		{
+			networkConfig[dIndex] = hostname[sIndex].charCodeAt();
+			dIndex++;
+		}
+		//IP address
+		for(sIndex=0; sIndex<myIp.length; sIndex++)
+		{
+			networkConfig[dIndex] = myIp[sIndex];
+			dIndex++;
+		}
+		//Subnet Mask
+		for(sIndex=0; sIndex<myMask.length; sIndex++)
+		{
+			networkConfig[dIndex] = myMask[sIndex];
+			dIndex++;
+		}
+		//Gateway
+		for(sIndex=0; sIndex<myGateway.length; sIndex++)
+		{
+			networkConfig[dIndex] = myGateway[sIndex];
+			dIndex++;
+		}
+	}
+	wsObject.send(networkConfig);
+}
+//-----------	Save functions
+
+function saveConfigReboot()
+{
+	sendWifiConfig();
+	sendNetworkConfig();
+	sendArtNetConfig();
+	wsObject.send("R");
+}
+</script>
+</body></html> 
