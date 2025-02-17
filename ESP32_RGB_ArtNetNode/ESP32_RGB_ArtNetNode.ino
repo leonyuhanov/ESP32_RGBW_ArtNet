@@ -799,7 +799,8 @@ void loop()
 void pollDMX(AsyncUDPPacket &packet)
 {
      unsigned short int uCount=0;
-     
+     uint8_t subnetPart=0, universePart=0;
+	 
      packetSize = packet.length();
      if(packetSize==maxPacketBufferSize)
      {
@@ -808,8 +809,11 @@ void pollDMX(AsyncUDPPacket &packet)
         {
           //packetBuffer[14] is the UNIVERSE byte
           //packetBuffer[15] is the SUBNET byte
-          if(artNetFrames[uCount][0]==packetBuffer[14] && artNetFrames[uCount][1]==packetBuffer[15])
-          {
+          subnetPart = packetBuffer[14]>>4;
+          universePart = packetBuffer[14]-((packetBuffer[14]>>4)<<4);
+		  //if(artNetFrames[uCount][0]==packetBuffer[14] && artNetFrames[uCount][1]==packetBuffer[15])
+          if(artNetFrames[uCount][0]==universePart && artNetFrames[uCount][1]==subnetPart)
+		  {
             //Serial.printf("\r\nGot Data for U[%d]S[%d]",packetBuffer[14],packetBuffer[15] );
             artNetData.parseArtNetPacket(packetBuffer);
             writeToPixels(uCount);
