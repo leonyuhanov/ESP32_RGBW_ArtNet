@@ -152,7 +152,7 @@ void setup()
     WiFi.enableAP(true);
     delay(100);
     WiFi.softAPConfig(local_ip, gateway, subnet);
-    WiFi.softAP(ssid, password, 1, 0, 2);
+    WiFi.softAP(ssid, password);
     delay(100);
     Serial.printf("\r\n\tWIFI_AP MAC\t");
     Serial.print(WiFi.softAPmacAddress());
