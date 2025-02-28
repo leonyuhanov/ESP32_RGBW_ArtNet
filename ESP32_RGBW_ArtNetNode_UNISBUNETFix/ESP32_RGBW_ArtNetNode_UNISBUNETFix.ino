@@ -153,6 +153,14 @@ void setup()
         wifiFlag=0;
       }
   	}
+   //set to black just in case we missed it
+   for(uCount=0; uCount<totalPixels; uCount++)
+    {
+      ledStrip.setPixel(uCount,0,0,0,0);
+    }
+    ledStrip.showPixels();
+    ledStrip.showPixels();
+    //ready
   	Serial.print("\r\nONLINE\t");
   	Serial.print(WiFi.localIP());
   
