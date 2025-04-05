@@ -1,0 +1,581 @@
+<html><title>RGBW ArtNet Driver</title>
+<style type="text/css">
+html, body{
+	background: black;
+	color: white;
+	font-family: Arial;
+	overflow-x: hidden;
+}
+h1{
+	animation-name: shrink;
+	animation-duration: 2s;
+	position: relative;
+}
+@keyframes shrink {
+  0%, 25% {top: 30%;}
+  100% {top: 0;}
+}
+h1, table{
+	text-align: center;
+}
+button, table{
+	animation-name: fade;
+	animation-duration: 1.5s;
+	animation-delay: 1.25s;
+	opacity: 0;
+	animation-fill-mode: forwards;
+}
+@keyframes fade {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+table{
+	width: 100%;
+	border-spacing: 4px 10px;
+}
+td{
+	padding: 5px;
+}
+tr{
+	background: #111;
+	transition: all .5s;
+}
+tr:nth-child(even){
+	background: #222;
+}
+tr:hover{
+	background: #444;
+}
+td:nth-child(4){
+	color: red;
+	transition: all .25s;
+}
+td:hover:nth-child(4){
+	background: red;
+	color: white;
+	cursor: pointer;
+}
+input, select, button{
+	background: #555;
+	border: 0;
+	color: white;
+}
+button{
+	width: auto;
+}
+select{
+	width: auto;
+}
+img{
+	position: relative;
+	top: 5px;
+}
+p{
+	text-align: center;
+}
+i{
+	opacity: 0;
+}
+</style>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body onload="init()">
+<i>.</i>
+<h1><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACoAAAAoCAYAAACIC2hQAAABmElEQVR4Ae2WIWzzMBCFA39ojsJLzFE4Mvm5OQpH5ijjJBwFDhqMy2i4HJlOmnR7lR44WW4zRW2dTgEfuXvJfY17TTsReQkO0UP03nyfTiMICrc7UYpJBfsqov3eRMea6B6PfqiI5j2K9iAXotNDRTHAgggC8NWFeOsGEojhdYGMzDn2PfN9McuAgdfM+sNtXQx3GQIykAqhdi/2akyclcpZW0XPYAEGN78Q7yCagecsD+IWUX0cptansAMTSBzurmQTxRYwArvylbPHK/RLOgsy8KpmQAJzc1EK9ZQU4lhPqjbtQXQAogisiyIeoofoOoeoURuegWV9VqK+taiWXYAt6tMWyePN9O/jfwAJmKI+gghsc1EKCgmqbkBWPddElDI9EEUunqYo5paivpBZVM8WvfOeRMein3chSplIkbmyTA6c2R9ai9pbElyq9j/43fun/0XGXmgiisEGRCAgrOQy8S1EZyAKeyW3FLn+2aKxEBi25x4rmgoBcyU3FTnX8ujTjZxTuQzsM0X1U12AWck5Sro/+TfvBz33qxiwXPx/AAAAAElFTkSuQmCC" alt="">
+RGBW ArtNet Driver</h1>
+<h5 align=center>ESP32-C5 Experimental Build for 5Ghz WIFI</h5>
+
+<!-- IP Config Table -->
+<table>
+<tbody>
+<tr>
+	<td colspan=2 >Device MAC</td>
+	<td colspan=2 ><div id="devicemac"></div></td>
+</tr>
+<tr>
+	<td colspan=2 >SSID</td>
+	<td colspan=2 ><input type="text" id="ssid"></td>
+</tr>
+<tr>
+	<td colspan=2 >Key</td>
+	<td colspan=2 ><input type="text" id="key"></td>
+</tr>
+<tr>
+	<td colspan=2 >IP Assigmnet</td>
+	<td colspan=2 >
+		<select name="ipdropdown" id="ipdropdown" onchange="ipoptionchange()">
+		<option value="dhcp" selected>DHCP</option>
+		<option value="static">Static IP</option>
+		</select>
+	</td>
+</tr>
+<tr id="staticiprow1" hidden>
+	<td>IP Address</td>
+	<td>Subnet Mask</td>
+	<td>Default Gateway</td>
+	<td>Host Name</td>
+</tr>
+<tr id="staticiprow2" hidden>
+	<td><input type="text" id="ipaddress"></td>
+	<td><input type="text" id="subnetmask" value="255.255.255.0"></td>
+	<td><input type="text" id="gateway"></td>
+	<td><input type="text" id="hostname"></td>
+</tr>
+</tbody></table>
+<!-- ARTNET Config Table -->
+<table id="artnettable">
+<tbody>
+<tr>
+	<td>Universe</td>
+	<td>Subnet</td>
+	<td>Total Pixels</td>
+	<td></td>
+</tr>
+</table>
+
+<p>
+<button onclick="addUniverse()">Add Universe</button>
+<button onclick="saveConfigReboot()">Save & Reboot</button>
+</p>
+
+<script language="JavaScript">
+//ArtNet Vars
+var numberOfUniverses = 1;
+var maxPixelsPerUniverse = 128;
+var universeList = Array();
+var dhcpOn = 0;
+
+
+//Web Socket Vars
+var wsObject;
+var returnedDataArray;
+var configSignals=0;
+
+setTimeout(function()
+{
+	window.scrollTo(0, 0);
+}, 10)
+
+function sleep(ms)
+{
+	return new Promise( resolve => setTimeout(resolve, ms));
+}
+
+
+async function init()
+{
+	initWebSockets();
+}
+
+function setUpArtNetTable()
+{
+	var tableObject = document.getElementById('artnettable');
+	var uCounter=0;
+	var trObject, tdObject, textInputObject;
+	
+	for(uCounter=0; uCounter<universeList.length; uCounter++)
+	{
+		//create Row
+		trObject = tableObject.insertRow(uCounter+1);
+		trObject.setAttribute('id', 'artnetid'+uCounter);
+		//Create Universe Column
+		tdObject = document.createElement('td');
+		tdObject = trObject.insertCell(0);
+		textInputObject = document.createElement('input');
+		textInputObject.setAttribute('id', 'universe'+uCounter);
+		textInputObject.setAttribute('value', universeList[uCounter][0]);
+		textInputObject.setAttribute('onChange', "artnetChange("+uCounter+", 'universe"+uCounter+"', 0)");
+		tdObject.appendChild(textInputObject);
+		//Create Subnet Column
+		tdObject = document.createElement('td');
+		tdObject = trObject.insertCell(1);
+		textInputObject = document.createElement('input');
+		textInputObject.setAttribute('id', 'subnet'+uCounter);
+		textInputObject.setAttribute('value', universeList[uCounter][1]);
+		textInputObject.setAttribute('onChange', "artnetChange("+uCounter+", 'subnet"+uCounter+"', 1)");
+		tdObject.appendChild(textInputObject);
+		//Create Pixel Count Column
+		tdObject = document.createElement('td');
+		tdObject = trObject.insertCell(2);
+		textInputObject = document.createElement('input');
+		textInputObject.setAttribute('id', 'pixelcount'+uCounter);
+		textInputObject.setAttribute('value', universeList[uCounter][2]);
+		textInputObject.setAttribute('onChange', "artnetChange("+uCounter+", 'pixelcount"+uCounter+"', 2)");
+		tdObject.appendChild(textInputObject);
+		//create delete button
+		tdObject = document.createElement('td');
+		tdObject = trObject.insertCell(3);
+		textInputObject = document.createElement('div');
+		textInputObject.setAttribute('id', 'del'+uCounter);
+		textInputObject.setAttribute('onClick', 'removeUniverse('+uCounter+')');
+		textInputObject.innerHTML = '&#10060;';
+		tdObject.appendChild(textInputObject);
+	}
+}
+
+function setUpDefaultArtNetConfig()
+{
+	var uCounter=0;
+	for(uCounter=0; uCounter<numberOfUniverses; uCounter++)
+	{
+		universeList.push([0,0,maxPixelsPerUniverse]);
+	}
+}
+
+function ipoptionchange()
+{
+	var selectedOption = document.getElementById("ipdropdown").value;
+	if(selectedOption=="dhcp")
+	{
+		document.getElementById("staticiprow1").hidden=true;
+		document.getElementById("staticiprow2").hidden=true;
+		dhcpOn=0;
+	}
+	else if(selectedOption=="static")
+	{
+		document.getElementById("staticiprow1").hidden=false;
+		document.getElementById("staticiprow2").hidden=false;
+		dhcpOn=1;
+	}
+}
+
+function artnetChange(universeIndex, fieldName, fieldIndex)
+{
+	universeList[universeIndex][fieldIndex] = document.getElementById(fieldName).value;
+}
+
+function clearUI()
+{
+	var tableObject = document.getElementById('artnettable');
+	var uCounter=0;
+	
+	for(uCounter=universeList.length; uCounter>0; uCounter--)
+	{
+		tableObject.deleteRow(uCounter);
+	}
+}
+
+function initWebSockets()
+{
+	var systemIPAddress = document.baseURI.substring(7, document.baseURI.length-1);
+
+	console.log("Initiating websocket...");
+	wsObject = new WebSocket("ws://"+systemIPAddress+"/ws");
+
+	wsObject.onopen = function()
+	{
+		wsObject.send("Hello.");
+	};
+
+	wsObject.onclose = function()
+	{
+	};
+
+	wsObject.onmessage = function(event)
+	{
+		console.log("WS Connected ["+event.data+"]");
+		if(event.data.size>3)
+		{
+			loadConfig(event.data)
+		}
+		else
+		{
+			if(configSignals==0)
+			{
+				wsObject.send("L");
+			}
+		}
+	};
+	
+}
+
+async function loadConfig(data)
+{
+	var configData = new Uint8Array(await data.arrayBuffer());
+	console.log("Loading config data...");
+	var macAddress = [0,0,0,0,0,0];
+	var deviceSSID="", deviceKey="";
+	var ipAddress = [0,0,0,0], subnetMask = [0,0,0,0], defaultGateway = [0,0,0,0];
+	var hostName = "", dhcpMode = 0, outputCount=0;
+	var localUniverseList = new Array(), subnetList = new Array(), pixelList = new Array();
+	var bufferIndex=0, endIndex=0, dataIndex=0;
+	
+	//clearUI();
+	
+	//check if config exists if its greater than 6
+	if(configData.length>7)
+	{
+		macAddress[0] = configData[0];//toString(16) converts to hex;
+		macAddress[1] = configData[1];//toString(16) converts to hex;
+		macAddress[2] = configData[2];//toString(16) converts to hex;
+		macAddress[3] = configData[3];//toString(16) converts to hex;
+		macAddress[4] = configData[4];//toString(16) converts to hex;
+		macAddress[5] = configData[5];//toString(16) converts to hex;
+		bufferIndex+=6;
+		endIndex = findNeedle(9, configData, configData.length, 0);
+		for(bufferIndex; bufferIndex<endIndex; bufferIndex++)
+		{
+			deviceSSID += String.fromCharCode( configData[bufferIndex] );
+		}
+		bufferIndex++;
+		endIndex = findNeedle(9, configData, configData.length, 1);
+		for(bufferIndex; bufferIndex<endIndex; bufferIndex++)
+		{
+			deviceKey += String.fromCharCode( configData[bufferIndex] );
+		}
+		bufferIndex++;
+		dhcpMode = configData[bufferIndex];
+		bufferIndex++
+		ipAddress[0] = configData[bufferIndex];
+		ipAddress[1] = configData[bufferIndex+1];
+		ipAddress[2] = configData[bufferIndex+2];
+		ipAddress[3] = configData[bufferIndex+3];
+		bufferIndex+=4;
+		subnetMask[0] = configData[bufferIndex];
+		subnetMask[1] = configData[bufferIndex+1];
+		subnetMask[2] = configData[bufferIndex+2];
+		subnetMask[3] = configData[bufferIndex+3];
+		bufferIndex+=4;
+		defaultGateway[0] = configData[bufferIndex];
+		defaultGateway[1] = configData[bufferIndex+1];
+		defaultGateway[2] = configData[bufferIndex+2];
+		defaultGateway[3] = configData[bufferIndex+3];
+		bufferIndex+=4;
+		endIndex = findNeedle(9, configData, configData.length, 2);
+		for(bufferIndex; bufferIndex<endIndex; bufferIndex++)
+		{
+			hostName += String.fromCharCode( configData[bufferIndex] );
+		}
+		bufferIndex++;
+		outputCount = configData[bufferIndex];
+		bufferIndex++;
+		for(dataIndex=0; dataIndex<outputCount; dataIndex++)
+		{
+			localUniverseList.push( configData[bufferIndex] );
+			bufferIndex++;
+		}
+		for(dataIndex=0; dataIndex<outputCount; dataIndex++)
+		{
+			subnetList.push( configData[bufferIndex] );
+			bufferIndex++;
+		}
+		for(dataIndex=0; dataIndex<outputCount; dataIndex++)
+		{
+			pixelList.push( configData[bufferIndex] );
+			bufferIndex++;
+		}
+		console.log("MAC Address\t\t["+macAddress[0].toString(16)+":"+macAddress[1].toString(16)+":"+macAddress[2].toString(16)+":"+macAddress[3].toString(16)+":"+macAddress[4].toString(16)+":"+macAddress[5].toString(16)+"]");
+		console.log("SSID\t\t["+deviceSSID+"]");
+		console.log("KEY\t\t["+deviceKey+"]");
+		console.log("DHCP Mode\t\t["+dhcpMode+"]");
+		console.log("IP ADdress\t\t["+ipAddress[0]+"."+ipAddress[1]+"."+ipAddress[2]+"."+ipAddress[3]+"]");
+		console.log("Subnet Mask\t\t["+subnetMask[0]+"."+subnetMask[1]+"."+subnetMask[2]+"."+subnetMask[3]+"]");
+		console.log("Gateway\t\t["+defaultGateway[0]+"."+defaultGateway[1]+"."+defaultGateway[2]+"."+defaultGateway[3]+"]");
+		console.log("hostName\t\t["+hostName+"]");
+		console.log("Output Count\t\t["+outputCount+"]");
+		for(dataIndex=0; dataIndex<outputCount; dataIndex++)
+		{
+			console.log("\t\tOutput\t["+dataIndex+"]\tUniverse\t["+localUniverseList[dataIndex]+"]\tSubnet\t["+subnetList[dataIndex]+"]\tPixel Count\t["+pixelList[dataIndex]+"]")
+		}
+		//load into UI
+		document.getElementById("devicemac").innerHTML=macAddress[0].toString(16)+":"+macAddress[1].toString(16)+":"+macAddress[2].toString(16)+":"+macAddress[3].toString(16)+":"+macAddress[4].toString(16)+":"+macAddress[5].toString(16);
+		document.getElementById("ssid").value = deviceSSID;
+		document.getElementById("key").value = deviceKey;
+		document.getElementById("ipaddress").value = ipAddress[0]+"."+ipAddress[1]+"."+ipAddress[2]+"."+ipAddress[3];
+		document.getElementById("subnetmask").value = subnetMask[0]+"."+subnetMask[1]+"."+subnetMask[2]+"."+subnetMask[3];
+		document.getElementById("gateway").value = defaultGateway[0]+"."+defaultGateway[1]+"."+defaultGateway[2]+"."+defaultGateway[3];
+		document.getElementById("hostname").value = hostName;
+		universeList = new Array();
+		for(dataIndex=0; dataIndex<outputCount; dataIndex++)
+		{
+			universeList.push([localUniverseList[dataIndex], subnetList[dataIndex], pixelList[dataIndex]]);
+		}
+		dhcpOn = dhcpMode;
+	}
+	else
+	{
+		//no config file exists load only the mac Address
+		console.log("No config exists loading MAC address...")
+		macAddress[0] = configData[0];//toString(16) converts to hex;
+		macAddress[1] = configData[1];//toString(16) converts to hex;
+		macAddress[2] = configData[2];//toString(16) converts to hex;
+		macAddress[3] = configData[3];//toString(16) converts to hex;
+		macAddress[4] = configData[4];//toString(16) converts to hex;
+		macAddress[5] = configData[5];//toString(16) converts to hex;
+		console.log("MAC Address\t\t["+macAddress[0].toString(16)+":"+macAddress[1].toString(16)+":"+macAddress[2].toString(16)+":"+macAddress[3].toString(16)+":"+macAddress[4].toString(16)+":"+macAddress[5].toString(16)+"]");
+		//load into UI
+		document.getElementById("devicemac").innerHTML=macAddress[0].toString(16)+":"+macAddress[1].toString(16)+":"+macAddress[2].toString(16)+":"+macAddress[3].toString(16)+":"+macAddress[4].toString(16)+":"+macAddress[5].toString(16);
+		setUpDefaultArtNetConfig();
+	}
+	if(dhcpOn==0)
+	{
+		document.getElementById("staticiprow1").hidden=true;
+		document.getElementById("staticiprow2").hidden=true;
+		document.getElementById("ipdropdown").options[0].selected=true;
+	}
+	else
+	{
+		document.getElementById("staticiprow1").hidden=false;
+		document.getElementById("staticiprow2").hidden=false;
+		document.getElementById("ipdropdown").options[1].selected=true;
+	}
+	setUpArtNetTable();
+	configSignals = 1;
+}
+
+function removeUniverse(universeIndex)
+{
+	//clear UI
+	clearUI();
+	//remove from universe list
+	universeList.splice(universeIndex,1);
+	numberOfUniverses = universeList.length;
+	//recrete UI
+	setUpArtNetTable();
+}
+function addUniverse()
+{
+	//clear UI
+	clearUI();
+	//add balnk enry
+	universeList.push([0,0,maxPixelsPerUniverse]);
+	numberOfUniverses = universeList.length;
+	//recrete UI
+	setUpArtNetTable();
+}
+function findNeedle(needle, haystack, length, count)
+{
+	var hayCounter=0;
+	var nCount=0;
+	for(hayCounter=0; hayCounter<length; hayCounter++)
+	{
+		if(haystack[hayCounter]==needle && nCount==count)
+		{
+			return hayCounter;
+		}
+		else if(haystack[hayCounter]==needle && nCount!=count)
+		{
+			nCount++;
+		}
+	}
+	return -1;
+}
+//-----------	Save functions
+function sendArtNetConfig()
+{
+	var artNetConfig = new Uint8Array(1+1+(universeList.length*3));
+	var aIndex=0, lIndex=0;
+	
+	artNetConfig[aIndex] = ("A").charCodeAt();
+	aIndex++;
+	artNetConfig[aIndex] = universeList.length;
+	aIndex++;
+	for(lIndex=0; lIndex<universeList.length; lIndex++)
+	{
+		artNetConfig[aIndex] = universeList[lIndex][0];
+		aIndex++;
+	}
+	for(lIndex=0; lIndex<universeList.length; lIndex++)
+	{
+		artNetConfig[aIndex] = universeList[lIndex][1];
+		aIndex++;
+	}
+	for(lIndex=0; lIndex<universeList.length; lIndex++)
+	{
+		artNetConfig[aIndex] = universeList[lIndex][2];
+		aIndex++;
+	}
+	console.log(artNetConfig);
+	wsObject.send(artNetConfig);
+}
+function sendWifiConfig(ssid, key)
+{
+	var iCounter=0;
+	var wifiConfig = new Uint8Array(1+ssid.length+1+key.length);
+	var aIndex=0;
+	
+	wifiConfig[aIndex] = ("W").charCodeAt();
+	aIndex++;
+	for(iCounter=0; iCounter<ssid.length; iCounter++)
+	{
+		wifiConfig[aIndex] = ssid[iCounter].charCodeAt();
+		aIndex++;
+	}
+	wifiConfig[aIndex] = 0;
+	aIndex++;
+	for(iCounter=0; iCounter<key.length; iCounter++)
+	{
+		wifiConfig[aIndex] = key[iCounter].charCodeAt();
+		aIndex++;
+	}
+	wsObject.send(wifiConfig);
+}
+function sendNetworkConfig(dhcpmode, ip, subnet, gateway, hostname)
+{
+	var networkConfig;
+	var sIndex=0, dIndex=0;
+	
+	//dhcpmode=0 DHCP ON dhcpmode=1 STATIC
+	networkConfig = new Uint8Array(1+1+hostname.length+1+4+4+4);
+	networkConfig[0] = ("N").charCodeAt();
+	//DHCP Mode
+	networkConfig[1] = dhcpmode;
+	//Hostname
+	dIndex=2;
+	for(sIndex=0; sIndex<hostname.length; sIndex++)
+	{
+		networkConfig[dIndex] = hostname[sIndex].charCodeAt();
+		dIndex++;
+	}
+	networkConfig[dIndex]=0;
+	dIndex++;
+	//IP address
+	for(sIndex=0; sIndex<ip.length; sIndex++)
+	{
+		networkConfig[dIndex] = ip[sIndex];
+		dIndex++;
+	}
+	//Subnet Mask
+	for(sIndex=0; sIndex<subnet.length; sIndex++)
+	{
+		networkConfig[dIndex] = subnet[sIndex];
+		dIndex++;
+	}
+	//Gateway
+	for(sIndex=0; sIndex<gateway.length; sIndex++)
+	{
+		networkConfig[dIndex] = gateway[sIndex];
+		dIndex++;
+	}
+
+	console.log(networkConfig);
+	wsObject.send(networkConfig);
+}
+//-----------	Save functions
+
+function saveConfigReboot()
+{
+	var ipAddress = document.getElementById("ipaddress").value.split("."), subnetMask = document.getElementById("subnetmask").value.split("."), gateway = document.getElementById("gateway").value.split(".");
+	var dhcpModeValue=0;
+	if(dhcpOn==0)
+	{
+		dhcpModeValue=0;
+		//send blank IP values
+		ipAddress = "0.0.0.0".split(".");
+		subnetMask = "0.0.0.0".split(".");
+		gateway = "0.0.0.0".split(".");
+		document.getElementById("hostname").value="BLANKNODE";
+	}
+	else
+	{
+		dhcpModeValue=1;
+	}
+	sendWifiConfig(document.getElementById("ssid").value, document.getElementById("key").value);
+	sendNetworkConfig(dhcpModeValue, ipAddress, subnetMask, gateway, document.getElementById("hostname").value);
+	sendArtNetConfig();
+	wsObject.send("S");
+	location.reload();
+}
+</script>
+</body></html> 
