@@ -46,3 +46,7 @@ Upload and compile the code, then use the ESP32 Upload tool to uplaod the UI pag
 
 If you want to use the SUBNET address byte properly please use the code and firmware [Located Here](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/tree/main/ESP32_RGBW_ArtNetNode_UNISBUNETFix)
 This translates the SUBNET byte proeprly. Previous versions will not use the subnet byte proerly and only use the UNIVERSE byte liiting you to 16 DMX universes
+
+# ESP32 C5 - 5Ghz WIFI Support
+
+For now a purely experimental version of this app [here](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/tree/main/RGBWArtnetDriverC5Experimental)
