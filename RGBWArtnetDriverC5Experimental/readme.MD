@@ -43,3 +43,8 @@ Key: wowaccesspoint
 -  Artnet config alows you to have as many Universes as you like (keep in mind that the more universes you set up the slower your render time will be, this is designed to drive 4 x 128 RGBW pixels with relatively good refresh rate)
 -  Once done hit "SAVE & Reboot"
 -  The ESP32 will try connecting to your wifi network, and after a few moments is ready to receive ArtNet Data
+
+# Custom PCB
+
+Gerbers are here [ESP32-C5 PCB Revision 1.1](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/Rev1.1.zip)
+![Revision 1.1 PCB](https://github.com/leonyuhanov/ESP32_RGBW_ArtNet/blob/main/Module%20Build%20Documentation/revision1.1.jpg)
