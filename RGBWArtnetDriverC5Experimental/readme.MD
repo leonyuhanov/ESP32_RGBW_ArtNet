@@ -1,4 +1,4 @@
-# ESP32-C5 with 5G WIfi Experimental build April 0225
+# ESP32-C5 with 5G WIfi Experimental build April 2025 RGBW
 
 This build is purely experimental for now. It uses the following:
 - [ESP32-C5 Dev Module](https://docs.espressif.com/projects/esp-dev-kits/en/latest/esp32c5/esp32-c5-devkitc-1/index.html)
